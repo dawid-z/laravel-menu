@@ -5,7 +5,9 @@
 [![License](https://poser.pugx.org/lavary/laravel-menu/license.svg)](https://packagist.org/packages/lavary/laravel-menu)
 
 
-A quick way to create menus in [Laravel 5.x](http://laravel.com/)
+A quick way to create menus in [Laravel 5](http://laravel.com/)
+
+__For Laravel 4.x, check [version 1.5.0](https://github.com/lavary/laravel-menu/tree/v1.5.0)__
 
 ##Documentation
 
@@ -50,7 +52,6 @@ A quick way to create menus in [Laravel 5.x](http://laravel.com/)
 	+ [A Basic Example](#a-basic-example)
 	+ [Control Structure for Blade](#control-structure-for-blade)
 		- [@lm-attrs](#lm-attrs)
-* [Publish the config](#publish-the-config)
 * [Configuration](#configuration)
 * [If You Need Help](#if-you-need-help)
 * [License](#license)
@@ -63,7 +64,7 @@ In the `require` key of `composer.json` file add `lavary/laravel-menu": "dev-mas
 ```
 ...
 "require": {
-	"laravel/framework": "5.0.*",
+	"laravel/framework": "5.1.*",
 	"lavary/laravel-menu": "dev-master"
   }  
 ```
@@ -79,16 +80,22 @@ Now append Laravel Menu service provider to  `providers` array in `config/app.ph
 ```php
 <?php
 
-'providers' => array(
+'providers' => [
 
-    'Illuminate\Foundation\Providers\ArtisanServiceProvider',
-    'Illuminate\Auth\AuthServiceProvider',
-    ...
-    'Illuminate\Html\HtmlServiceProvider',
-    ...
-    'Lavary\Menu\ServiceProvider',
+        /*
+         * Laravel Framework Service Providers...
+         */
+        Illuminate\Foundation\Providers\ArtisanServiceProvider::class,
+        Illuminate\Auth\AuthServiceProvider::class,
+        Illuminate\Broadcasting\BroadcastServiceProvider::class,
+	
+	...
+        
+        'Lavary\Menu\ServiceProvider',
+        
+        ...
 
-),
+],
 ?>
 ```
 
@@ -97,16 +104,14 @@ At the end of `config/app.php` add `'Menu'    => 'Lavary\Menu\Facade'` to the `$
 ```php
 <?php
 
-'aliases' => array(
+'aliases' => [
 
-    'App'        => 'Illuminate\Support\Facades\App',
-    'Artisan'    => 'Illuminate\Support\Facades\Artisan',
-    ...
-    'Html'      => 'Illuminate\Html\HtmlFacade',
+    'App'       => Illuminate\Support\Facades\App::class,
+    'Artisan'   => Illuminate\Support\Facades\Artisan::class,
     ...
     'Menu'       => 'Lavary\Menu\Facade',
 
-),
+],
 ?>
 ```
 
@@ -115,8 +120,7 @@ This registers the package with Laravel and creates an alias called `Menu`.
 
 ## Getting Started
 
-
-Menus can be defined in `app/Http/routes.php` or any other place you wish as long as it is auto loaded when a request hits your application.
+You can define the menu definitions inside a [laravel middleware](http://laravel.com/docs/master/middleware). As a result anythime a request hits your application, the menu objects will be available to all your views.
 
 
 Here is a basic usage:
@@ -135,11 +139,11 @@ Menu::make('MyNavBar', function($menu){
 ?>
 ```
 
-**Attention** `$MyNavBar` is just a hypothetical name I used in these examples; You can name your menus whatever you please.
+**Attention** `$MyNavBar` is just a hypothetical name I used in these examples; You may name your menus whatever you please.
 
-In the above example `Menu::make()` creates a menu named `MyNavBar`, Adds the menu instance to the `Menu::collection` and ultimately makes `$myNavBar` object available across all views.
+In the above example `Menu::make()` creates a menu named `MyNavBar`, Adds the menu instance to the `Menu::collection` and ultimately makes `$myNavBar` object available across all application views.
 
-This method accepts a callable inside which you can define your items. `add` method defines a new item. It receives two parameters, the first one is the item title and the second one is options.
+This method accepts a callable inside which you can define your menu items. `add` method defines a new item. It receives two parameters, the first one is the item title and the second one is options.
 
 *options* can be a simple string representing a URL or an associative array of options and HTML attributes which we'll discuss shortly.
 
@@ -187,7 +191,7 @@ $menu->add('About Us', 'about-us');
 // ...
 ```
 
-#### Named Routs
+#### Named Routes
 
 `laravel-menu` supports named routes as well:
 
@@ -225,7 +229,7 @@ You will just need to set `action` key of your options array to a controller act
 ```php
 <?php
 
-// Suppose we have these routes defined in our app/routes.php file
+// Suppose we have these routes defined in our app/Http/routes.php file
 
 // ...
 Route::get('services', 'ServiceController@index');
@@ -266,7 +270,7 @@ If you need to serve the route over HTTPS, call `secure()` on the item's `link` 
 	$menu->add('Members', 'members')->link->secure();
 	
 	
-	// or alternatively use this shortcut
+	// or alternatively use the following method
 	
 	$menu->add('Members', array('url' => 'members', 'secure' => true));
 	
@@ -725,7 +729,7 @@ You can mark an item as activated using `active()` on that item:
 ?>
 ```
 
-You can also add class `active` to the anchor element instead of the wrapping element:
+You can also add class `active` to the anchor element instead of the wrapping element (`div` or `li`):
 
 ```php
 <?php
@@ -744,7 +748,7 @@ You can also add class `active` to the anchor element instead of the wrapping el
 
 Laravel Menu does this for you automatically according to the current **URI** the time you register the item.
 
-You can also choose the element to be activated (item or the link) in `options.php` which resides in package's config directory:
+You can also choose the element to be activated (item or the link) in `settings.php` which resides in package's config directory:
 
 ```php
 
@@ -756,13 +760,13 @@ You can also choose the element to be activated (item or the link) in `options.p
 
 #### RESTful URLs
 
-RESTful URLs are also supported as long as `restful` option is set as `true` in `config/laravel-menu/settings.php` file, E.g. item with url `resource` will be activated by `resource/slug` or `resource/slug/edit`.  
+RESTful URLs are also supported as long as `restful` option is set as `true` in `config/settings.php` file, E.g. menu item with url `resource` will be activated by `resource/slug` or `resource/slug/edit`.  
 
-You might encounter situations where your app is in a directory instead of the root directory or your resources have a common prefix; In such case you need to set `rest_base` option to a proper prefix for a better restful activation support. `rest_base` can take a simple string, array of string or a function call as value.
+You might encounter situations where your app is in a sub directory instead of the root directory or your resources have a common prefix; In such case you need to set `rest_base` option to a proper prefix for a better restful activation support. `rest_base` can take a simple string, array of string or a function call as value.
 
 #### URL Wildcards
 
-You can also able to define a pattern for a certain item, if the automatic activation can't help:
+`laravel-menu` makes you able to define a pattern for a certain item, if the automatic activation can't help:
 
 ```php
 <?php
@@ -847,8 +851,8 @@ Menu::make('MyNavBar', function($menu){
   $about = $menu->add('About',    array('route'  => 'page.about', 'class' => 'navbar navbar-about dropdown'));
   
   $menu->about->attr(array('class' => 'dropdown-toggle', 'data-toggle' => 'dropdown'))
-              ->append(' <b classs="caret"></b>')
-              ->prepend('<span classs="glyphicon glyphicon-user"></span> ');
+              ->append(' <b class="caret"></b>')
+              ->prepend('<span class="glyphicon glyphicon-user"></span> ');
               
   // ...            
 
@@ -864,7 +868,7 @@ The above code will result:
   
   <li class="navbar navbar-about dropdown">
    <a href="about" class="dropdown-toggle" data-toggle="dropdown">
-     <span class="glyphicon glyphicon-user"></span> About <b classs="caret"></b>
+     <span class="glyphicon glyphicon-user"></span> About <b class="caret"></b>
    </a>
   </li>
 </ul>
@@ -1262,16 +1266,16 @@ Result:
 
 Laravel Menu provides a parital view out of the box which generates menu items in a bootstrap friendly style which you can **include** in your Bootstrap based navigation bars:
 
-You can access the partial view via `Config::get('laravel-menu.views.bootstrap-items')`.
+You can access the partial view by `config('laravel-menu.views.bootstrap-items')`.
 
 All you need to do is to include the partial view and pass the root level items to it:
 
 ```
-{{{...}}}
+...
 
-@include(Config::get('laravel-menu.views.bootstrap-items'), array('items' => $mainNav->roots()))
+@include(config('laravel-menu.views.bootstrap-items'), array('items' => $mainNav->roots()))
 
-{{{...}}}
+...
 
 ```
 
@@ -1295,7 +1299,7 @@ This is how your Bootstrap code is going to look like:
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
 
-       @include(Config::get('laravel-menu.views.bootstrap-items'), array('items' => $mainNav->roots()))
+       @include(config('laravel-menu.views.bootstrap-items'), array('items' => $mainNav->roots()))
 
       </ul>
       <form class="navbar-form navbar-right" role="search">
@@ -1306,7 +1310,7 @@ This is how your Bootstrap code is going to look like:
       </form>
       <ul class="nav navbar-nav navbar-right">
 
-        @include(Config::get('laravel-menu.views.bootstrap-items'), array('items' => $loginNav->roots()))
+        @include(config('laravel-menu.views.bootstrap-items'), array('items' => $loginNav->roots()))
 
       </ul>
     </div><!-- /.navbar-collapse -->
@@ -1330,7 +1334,7 @@ The reason we use two view files here is that `View-2` calls itself recursively 
 
 Let's make this easier with an example:
 
-In our `routes.php`:
+In our `app/Http/routes.php`:
 
 ```php
 <?php
@@ -1444,18 +1448,10 @@ Here's the result:
 ...
 ```
 
-## Publish the config
-
-Run this on the command line from the root of your project:
-
-    php artisan vendor:publish
-
-This will publish Laravel Menu config to ``config/laravel-menu/`` and views to the ``resources/views/vendor/laravel-menu/``
-
 
 ## Configuration
 
-You can adjust the behavior of the menu builder in `config/laravel-menu/settings.php` file. Currently it provide a few options out of the box:
+You can adjust the behavior of the menu builder in `config/settings.php` file. Currently it provide a few options out of the box:
 
 * **auto_activate** Automatically activates menu items based on the current URI
 * **activate_parents** Activates the parents of an active item
